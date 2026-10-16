@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f4ed">
+  <title>圖形搜尋｜BFS 與 DFS</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202a25;
+      --muted: #68746c;
+      --paper: #f4f4ed;
+      --surface: #fffefa;
+      --line: #dfe3d9;
+      --green: #315c48;
+      --green-dark: #244735;
+      --lime: #d9e6a5;
+      --coral: #cf694d;
+      --soft-green: #e9efe6;
+      --shadow: 0 16px 40px rgba(36, 55, 44, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: radial-gradient(#dce3d7 0.7px, transparent 0.7px);
+      background-size: 17px 17px;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+    button, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .topbar {
+      display: flex;
+      min-height: 66px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 max(22px, calc((100vw - 1100px) / 2));
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 254, 250, 0.9);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      aspect-ratio: 1;
+      place-items: center;
+      color: white;
+      background: var(--green);
+      font-family: Georgia, serif;
+      font-size: 1.05rem;
+    }
+    .topbar-note { color: var(--muted); font-size: 0.78rem; }
+    main { width: min(1100px, calc(100% - 40px)); margin: 0 auto; padding: 42px 0 56px; }
+    .intro { margin-bottom: 26px; }
+    .eyebrow { margin: 0 0 10px; color: var(--coral); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; }
+    h1 { margin: 0; font-family: Georgia, "Noto Serif TC", serif; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.12; }
+    .intro-copy { max-width: 700px; margin: 12px 0 0; color: var(--muted); font-size: 0.92rem; line-height: 1.7; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(290px, 0.9fr); gap: 20px; align-items: start; }
+    .panel { border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+    .visualization, .results, .details { padding: 22px; }
+    .section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+    h2 { margin: 0; font-size: 1.05rem; }
+    .section-title span, .subtle { color: var(--muted); font-size: 0.76rem; }
+    .graph-wrap { width: 100%; overflow: hidden; background: #fbfcf8; }
+    .graph { display: block; width: 100%; height: auto; }
+    .edge { stroke: #aab7a7; stroke-width: 3; transition: stroke 220ms ease, stroke-width 220ms ease; }
+    .edge.explored { stroke: var(--coral); stroke-width: 5; }
+    .node-circle { fill: #fffefa; stroke: var(--green); stroke-width: 3; transition: fill 220ms ease, stroke 220ms ease; }
+    .node-circle.visited { fill: var(--lime); }
+    .node-circle.current { fill: var(--coral); stroke: #a84e37; }
+    .node-text.current { fill: white; }
+    .node-text { fill: var(--green-dark); font-size: 20px; font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+    .graph-caption { margin: 12px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.6; }
+    .animation-panel { margin-top: 16px; padding: 15px; border: 1px solid var(--line); background: white; }
+    .animation-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .animation-top label { font-size: 0.82rem; font-weight: 800; }
+    .animation-top select { min-height: 36px; }
+    .animation-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .animation-button {
+      min-height: 36px;
+      padding: 7px 11px;
+      border: 1px solid var(--green);
+      color: white;
+      background: var(--green);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .animation-button:hover { background: var(--green-dark); }
+    .animation-button.secondary { color: var(--green); background: white; }
+    .animation-button.secondary:hover { background: var(--soft-green); }
+    .animation-status { min-height: 22px; margin: 11px 0 0; color: var(--muted); font-size: 0.78rem; }
+    .controls { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .controls label { font-size: 0.84rem; font-weight: 800; }
+    select {
+      min-height: 40px;
+      padding: 7px 32px 7px 11px;
+      border: 1px solid #cfd6cb;
+      border-radius: 0;
+      color: var(--ink);
+      background: white;
+    }
+    select:focus { border-color: var(--green); outline: 3px solid rgba(49, 92, 72, 0.12); }
+    .result-card { padding: 15px; border: 1px solid var(--line); background: white; }
+    .result-card + .result-card { margin-top: 12px; }
+    .result-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .result-heading h3 { margin: 0; color: var(--green-dark); font-size: 0.96rem; }
+    .result-heading span { color: var(--muted); font-size: 0.72rem; }
+    .sequence { margin: 12px 0 0; color: var(--ink); font-family: Georgia, serif; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.04em; }
+    .sequence span { color: var(--coral); }
+    .steps { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 0.78rem; line-height: 1.65; }
+    .details { margin-top: 20px; }
+    .edge-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+    .edge-list li { padding: 6px 9px; border: 1px solid #cfd8cb; color: var(--green-dark); background: var(--soft-green); font-family: Georgia, serif; font-size: 0.88rem; font-weight: 700; }
+    .note { margin: 14px 0 0; padding: 11px 13px; border-left: 3px solid var(--coral); color: var(--muted); background: #fff5ef; font-size: 0.8rem; line-height: 1.65; }
+    @media (max-width: 760px) {
+      .workspace { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      main { width: min(100% - 24px, 1100px); padding-top: 28px; }
+      .topbar { padding: 0 14px; }
+      .topbar-note { font-size: 0.68rem; }
+      .visualization, .results, .details { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">G</span><span>資料結構互動教室</span></div>
+    <span class="topbar-note">Graph Traversal · BFS / DFS</span>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p class="eyebrow">DATA STRUCTURE · GRAPH</p>
+      <h1>圖形搜尋：BFS 與 DFS</h1>
+      <p class="intro-copy">以下以六個頂點 A–F 和指定的九條無向邊組成圖形。選擇起點後，頁面會依照鄰點字母順序，重新計算廣度優先搜尋（BFS）與深度優先搜尋（DFS）。</p>
+    </section>
+
+    <div class="workspace">
+      <section class="panel visualization" aria-labelledby="graph-title">
+        <div class="section-title">
+          <h2 id="graph-title">六邊形圖形</h2>
+          <span>6 個頂點 · 9 條邊</span>
+        </div>
+        <div class="graph-wrap">
+          <svg class="graph" viewBox="0 0 760 400" role="img" aria-labelledby="svg-title svg-description">
+            <title id="svg-title">A 到 F 的無向圖</title>
+            <desc id="svg-description">A 位於最左，B 和 C 分別位於第二欄上方與下方，D 和 E 位於第三欄上方與下方，F 位於最右。連線為 AB、AC、BC、BD、CD、CE、DE、DF、EF。</desc>
+            <g aria-hidden="true">
+              <line class="edge" data-edge="AB" x1="60" y1="200" x2="250" y2="90"/>
+              <line class="edge" data-edge="AC" x1="60" y1="200" x2="250" y2="310"/>
+              <line class="edge" data-edge="BC" x1="250" y1="90" x2="250" y2="310"/>
+              <line class="edge" data-edge="BD" x1="250" y1="90" x2="500" y2="90"/>
+              <line class="edge" data-edge="CD" x1="250" y1="310" x2="500" y2="90"/>
+              <line class="edge" data-edge="CE" x1="250" y1="310" x2="500" y2="310"/>
+              <line class="edge" data-edge="DE" x1="500" y1="90" x2="500" y2="310"/>
+              <line class="edge" data-edge="DF" x1="500" y1="90" x2="700" y2="200"/>
+              <line class="edge" data-edge="EF" x1="500" y1="310" x2="700" y2="200"/>
+            </g>
+            <g aria-hidden="true">
+              <circle class="node-circle" data-node="A" cx="60" cy="200" r="28"/><text class="node-text" data-label="A" x="60" y="200">A</text>
+              <circle class="node-circle" data-node="B" cx="250" cy="90" r="28"/><text class="node-text" data-label="B" x="250" y="90">B</text>
+              <circle class="node-circle" data-node="C" cx="250" cy="310" r="28"/><text class="node-text" data-label="C" x="250" y="310">C</text>
+              <circle class="node-circle" data-node="D" cx="500" cy="90" r="28"/><text class="node-text" data-label="D" x="500" y="90">D</text>
+              <circle class="node-circle" data-node="E" cx="500" cy="310" r="28"/><text class="node-text" data-label="E" x="500" y="310">E</text>
+              <circle class="node-circle" data-node="F" cx="700" cy="200" r="28"/><text class="node-text" data-label="F" x="700" y="200">F</text>
+            </g>
+          </svg>
+        </div>
+        <div class="animation-panel" aria-label="探索動畫控制">
+          <div class="animation-top">
+            <label for="animation-algorithm">動畫方式</label>
+            <select id="animation-algorithm">
+              <option value="bfs">BFS 廣度優先</option>
+              <option value="dfs">DFS 深度優先</option>
+            </select>
+          </div>
+          <div class="animation-buttons">
+            <button class="animation-button" id="play-button" type="button">▶ 開始播放</button>
+            <button class="animation-button secondary" id="step-button" type="button">單步前進</button>
+            <button class="animation-button secondary" id="reset-button" type="button">重設</button>
+          </div>
+          <p class="animation-status" id="animation-status" aria-live="polite">準備就緒，選擇演算法後開始探索。</p>
+        </div>
+        <p class="graph-caption">線條代表無向邊；A 在最左，F 在最右，B／D 位於上方，C／E 位於下方。</p>
+      </section>
+
+      <section class="panel results" aria-labelledby="results-title">
+        <div class="section-title">
+          <h2 id="results-title">搜尋結果</h2>
+          <span>鄰點依 A → F 排序</span>
+        </div>
+        <div class="controls">
+          <label for="start-node">起始頂點</label>
+          <select id="start-node" aria-label="選擇搜尋起始頂點">
+            <option>A</option><option>B</option><option>C</option>
+            <option>D</option><option>E</option><option>F</option>
+          </select>
+        </div>
+        <article class="result-card" aria-live="polite">
+          <div class="result-heading"><h3>廣度優先搜尋（BFS）</h3><span>逐層拜訪</span></div>
+          <p class="sequence" id="bfs-sequence"></p>
+          <ol class="steps" id="bfs-steps"></ol>
+        </article>
+        <article class="result-card" aria-live="polite">
+          <div class="result-heading"><h3>深度優先搜尋（DFS）</h3><span>先深入再回溯</span></div>
+          <p class="sequence" id="dfs-sequence"></p>
+          <ol class="steps" id="dfs-steps"></ol>
+        </article>
+      </section>
+    </div>
+
+    <section class="panel details" aria-labelledby="edges-title">
+      <div class="section-title">
+        <h2 id="edges-title">邊與鄰接表</h2>
+        <span>無向圖</span>
+      </div>
+      <ul class="edge-list" aria-label="圖形的九條邊">
+        <li>AB</li><li>AC</li><li>BC</li><li>BD</li><li>CD</li>
+        <li>CE</li><li>DE</li><li>DF</li><li>EF</li>
+      </ul>
+      <p class="note"><strong>鄰接表：</strong> A: B, C　·　B: A, C, D　·　C: A, B, D, E　·　D: B, C, E, F　·　E: C, D, F　·　F: D, E</p>
+    </section>
+  </main>
+
+  <script>
+    const graph = {
+      A: ["B", "C"],
+      B: ["A", "C", "D"],
+      C: ["A", "B", "D", "E"],
+      D: ["B", "C", "E", "F"],
+      E: ["C", "D", "F"],
+      F: ["D", "E"]
+    };
+
+    function breadthFirstSearch(start) {
+      const visited = new Set([start]);
+      const queue = [start];
+      const order = [];
+      const steps = [];
+      const events = [{ node: start, parent: null }];
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+        order.push(current);
+        const added = graph[current].filter((neighbor) => !visited.has(neighbor));
+        added.forEach((neighbor) => {
+          visited.add(neighbor);
+          queue.push(neighbor);
+          events.push({ node: neighbor, parent: current });
+        });
+        steps.push(`拜訪 ${current}${added.length ? `，將 ${added.join("、")} 加入佇列` : "，沒有新頂點加入佇列"}`);
+      }
+      return { order, steps, events };
+    }
+
+    function depthFirstSearch(start) {
+      const visited = new Set();
+      const order = [];
+      const steps = [];
+      const events = [];
+
+      function visit(current, parent) {
+        visited.add(current);
+        order.push(current);
+        steps.push(`拜訪 ${current}`);
+        events.push({ node: current, parent });
+        graph[current].forEach((neighbor) => {
+          if (!visited.has(neighbor)) {
+            visit(neighbor, current);
+          }
+        });
+      }
+
+      visit(start, null);
+      return { order, steps, events };
+    }
+
+    function renderResult(prefix, result) {
+      document.getElementById(`${prefix}-sequence`).innerHTML =
+        result.order.map((node) => `<span>${node}</span>`).join(" → ");
+      const steps = document.getElementById(`${prefix}-steps`);
+      steps.replaceChildren(...result.steps.map((step) => {
+        const item = document.createElement("li");
+        item.textContent = step;
+        return item;
+      }));
+    }
+
+    function updateSearchResults() {
+      const start = document.getElementById("start-node").value;
+      renderResult("bfs", breadthFirstSearch(start));
+      renderResult("dfs", depthFirstSearch(start));
+      resetAnimation();
+    }
+
+    let animationIndex = 0;
+    let animationTimer = null;
+
+    function getAnimationEvents() {
+      const start = document.getElementById("start-node").value;
+      const algorithm = document.getElementById("animation-algorithm").value;
+      return algorithm === "bfs"
+        ? breadthFirstSearch(start).events
+        : depthFirstSearch(start).events;
+    }
+
+    function updateAnimationStatus(message) {
+      document.getElementById("animation-status").textContent = message;
+    }
+
+    function stopAnimation() {
+      if (animationTimer !== null) {
+        window.clearInterval(animationTimer);
+        animationTimer = null;
+      }
+      document.getElementById("play-button").textContent = "▶ 開始播放";
+    }
+
+    function advanceAnimation() {
+      const events = getAnimationEvents();
+      if (animationIndex >= events.length) {
+        stopAnimation();
+        updateAnimationStatus("探索完成！");
+        return;
+      }
+
+      const event = events[animationIndex];
+      document.querySelectorAll(".node-circle").forEach((node) => {
+        node.classList.toggle("visited", events.slice(0, animationIndex + 1)
+          .some((visitedEvent) => visitedEvent.node === node.dataset.node));
+        node.classList.toggle("current", node.dataset.node === event.node);
+      });
+      document.querySelectorAll(".node-text").forEach((label) => {
+        label.classList.toggle("current", label.dataset.label === event.node);
+      });
+      document.querySelectorAll(".edge").forEach((edge) => edge.classList.remove("explored"));
+      events.slice(1, animationIndex + 1).forEach(({ node, parent }) => {
+        const edgeName = [parent, node].sort().join("");
+        document.querySelector(`.edge[data-edge="${edgeName}"]`)?.classList.add("explored");
+      });
+      animationIndex += 1;
+      updateAnimationStatus(`探索第 ${animationIndex}／${events.length} 個頂點：${event.node}`);
+
+      if (animationIndex === events.length) {
+        stopAnimation();
+        updateAnimationStatus(`探索完成！拜訪順序：${events.map(({ node }) => node).join(" → ")}`);
+      }
+    }
+
+    function resetAnimation() {
+      stopAnimation();
+      animationIndex = 0;
+      document.querySelectorAll(".node-circle").forEach((node) => {
+        node.classList.remove("visited", "current");
+      });
+      document.querySelectorAll(".node-text").forEach((label) => label.classList.remove("current"));
+      document.querySelectorAll(".edge").forEach((edge) => edge.classList.remove("explored"));
+      updateAnimationStatus("準備就緒，選擇演算法後開始探索。");
+    }
+
+    document.getElementById("play-button").addEventListener("click", () => {
+      if (animationTimer !== null) {
+        stopAnimation();
+        updateAnimationStatus("動畫已暫停。");
+        return;
+      }
+      if (animationIndex >= getAnimationEvents().length) resetAnimation();
+      document.getElementById("play-button").textContent = "⏸ 暫停";
+      advanceAnimation();
+      if (animationIndex < getAnimationEvents().length) {
+        animationTimer = window.setInterval(advanceAnimation, 850);
+      }
+    });
+    document.getElementById("step-button").addEventListener("click", () => {
+      stopAnimation();
+      advanceAnimation();
+    });
+    document.getElementById("reset-button").addEventListener("click", resetAnimation);
+    document.getElementById("animation-algorithm").addEventListener("change", resetAnimation);
+    document.getElementById("start-node").addEventListener("change", updateSearchResults);
+    updateSearchResults();
+  </script>
+</body>
+</html>
