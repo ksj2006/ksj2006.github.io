@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>柳橙餐廳｜線上候位</title>
+  <link rel="stylesheet" href="waitlist.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-page="customer">
+  <main class="page customer-page">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="回到候位首頁">
+        <span class="brand-mark" aria-hidden="true">候</span>
+        <span class="brand-name" data-restaurant>柳橙餐廳</span>
+      </a>
+      <a class="header-link" href="staff.html">員工管理</a>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">線上候位，不必在門口久等</p>
+      <h1>加入候位隊伍</h1>
+      <p class="hero-copy">留下聯絡方式，隨時查看候位進度；輪到您時，我們會寄送通知信。</p>
+      <div class="queue-count-card" aria-live="polite">
+        <span class="count-icon" aria-hidden="true">↗</span>
+        <span><strong id="queue-count">—</strong><small>組正在候位</small></span>
+        <span id="connection-state" class="connection-state">連線中</span>
+      </div>
+    </section>
+
+    <section class="panel form-panel" id="join-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">開始候位</p>
+          <h2>填寫候位資料</h2>
+        </div>
+        <span class="step-badge">01</span>
+      </div>
+      <form id="join-form">
+        <label for="customer-name">姓名 <span class="required">必填</span></label>
+        <input id="customer-name" name="name" type="text" maxlength="40" autocomplete="name" placeholder="請輸入姓名" required>
+
+        <label for="customer-gender">性別 <span class="required">必填</span></label>
+        <select id="customer-gender" name="gender" required>
+          <option value="">請選擇</option>
+          <option value="男">男</option>
+          <option value="女">女</option>
+          <option value="其他">其他</option>
+          <option value="不透露">不透露</option>
+        </select>
+
+        <label for="customer-email">E-mail <span class="required">必填</span></label>
+        <input id="customer-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com" required>
+
+        <label for="party-size">用餐人數</label>
+        <select id="party-size" name="party_size">
+          <option value="1">1 人</option>
+          <option value="2" selected>2 人</option>
+          <option value="3">3 人</option>
+          <option value="4">4 人</option>
+          <option value="5">5 人</option>
+          <option value="6">6 人</option>
+          <option value="7">7 人</option>
+          <option value="8">8 人</option>
+        </select>
+        <p class="form-note">送出後請留意 E-mail，候位號碼請於現場報到時出示。</p>
+        <button class="button button-primary button-wide" type="submit" id="join-submit">加入候位</button>
+        <p class="feedback" id="join-feedback" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="panel ticket-panel hidden" id="ticket-panel" aria-live="polite">
+      <div class="ticket-top">
+        <div>
+          <p class="eyebrow">您的候位號碼</p>
+          <div class="ticket-number" id="ticket-number">—</div>
+        </div>
+        <span class="status-pill" id="ticket-status">等候中</span>
+      </div>
+      <div class="ticket-details">
+        <div><span>目前候位</span><strong id="ticket-total">— 組</strong></div>
+        <div><span>您前面還有</span><strong id="ticket-ahead">— 組</strong></div>
+        <div><span>用餐人數</span><strong id="ticket-party">— 人</strong></div>
+      </div>
+      <p class="ticket-hint" id="ticket-hint">候位進度每 5 秒更新一次。請留意您的電子郵件。</p>
+      <button class="button button-secondary button-wide" type="button" id="leave-button">取消候位</button>
+      <p class="feedback" id="ticket-feedback" role="status" aria-live="polite"></p>
+    </section>
+
+    <footer class="site-footer">
+      <span>如需協助，請洽現場服務人員。</span>
+      <span id="mode-label"></span>
+    </footer>
+  </main>
+</body>
+</html>

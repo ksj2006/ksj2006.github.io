@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>柳橙餐廳｜員工候位管理</title>
+  <link rel="stylesheet" href="waitlist.css">
+  <script src="app.js" defer></script>
+</head>
+<body data-page="staff">
+  <main class="page staff-page">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="回到顧客候位頁">
+        <span class="brand-mark" aria-hidden="true">候</span>
+        <span class="brand-name" data-restaurant>柳橙餐廳</span>
+      </a>
+      <a class="header-link" href="./">顧客候位頁</a>
+    </header>
+
+    <section class="hero staff-hero">
+      <p class="eyebrow">STAFF CONSOLE</p>
+      <h1>候位管理</h1>
+      <p class="hero-copy">查看目前隊伍，並為顧客寄送通知或更新候位狀態。</p>
+    </section>
+
+    <section class="panel login-panel" id="staff-login-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">員工驗證</p>
+          <h2>登入管理頁</h2>
+        </div>
+        <span class="step-badge">01</span>
+      </div>
+      <form id="staff-login-form">
+        <label for="staff-key">員工密碼</label>
+        <input id="staff-key" type="password" autocomplete="current-password" placeholder="請輸入員工密碼" required>
+        <button class="button button-primary button-wide" type="submit">登入</button>
+        <p class="feedback" id="login-feedback" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="staff-dashboard hidden" id="staff-dashboard">
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow">LIVE QUEUE</p>
+          <h2>目前候位名單 <span class="live-dot" aria-label="自動更新中"></span></h2>
+        </div>
+        <button class="button button-quiet" id="staff-logout" type="button">登出</button>
+      </div>
+      <div class="stats-grid" id="staff-stats">
+        <article class="stat-card"><span>目前候位</span><strong id="stat-waiting">—</strong></article>
+        <article class="stat-card"><span>今日入座</span><strong id="stat-seated">—</strong></article>
+        <article class="stat-card"><span>今日取消</span><strong id="stat-cancelled">—</strong></article>
+        <article class="stat-card"><span>平均等候</span><strong id="stat-average">—</strong></article>
+      </div>
+      <div class="panel table-panel">
+        <div class="table-toolbar">
+          <p id="queue-updated">載入候位名單中…</p>
+          <button class="button button-quiet" id="refresh-queue" type="button">立即更新</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>號碼</th><th>姓名</th><th>性別</th><th>人數</th><th>E-mail</th><th>候位時間</th><th>狀態</th><th>操作</th></tr>
+            </thead>
+            <tbody id="queue-body"></tbody>
+          </table>
+          <div class="empty-state hidden" id="queue-empty">目前沒有候位顧客。</div>
+        </div>
+      </div>
+      <p class="feedback dashboard-feedback" id="dashboard-feedback" role="status" aria-live="polite"></p>
+      <p class="dashboard-note">名單每 5 秒更新。操作成功後，顧客端候位進度也會同步更新。</p>
+    </section>
+
+    <footer class="site-footer">
+      <span><a href="./">返回顧客候位頁</a></span>
+      <span id="mode-label"></span>
+    </footer>
+  </main>
+</body>
+</html>
